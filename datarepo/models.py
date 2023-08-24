@@ -17,4 +17,10 @@ class SubCategory(models.Model):
 class Products(models.Model):
     subcategory = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=233)
-    prize = models.IntegerField()
+    price = models.IntegerField()
+    description = models.CharField(max_length=233, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return srt(self.id)
