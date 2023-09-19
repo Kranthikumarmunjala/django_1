@@ -14,7 +14,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 
 class ProductsAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'subcategory', 'price', 'description', 'created_at', 'updated_at']
+    list_display = ['id', 'name', 'subcategory', 'price', 'description','image', 'created_at', 'updated_at']
     list_filter = ['name']
     search_fields = ['id']
 

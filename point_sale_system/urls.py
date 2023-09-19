@@ -15,6 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from datarepo.views import add_category, list_category, update_category, delete_category, add_subcategory, \
     list_subcategory, update_subcategory, delete_subcategory, add_products, list_products, update_products, \
     delete_products
@@ -33,4 +35,4 @@ urlpatterns = [
     path('list_products/', list_products, name='list_products'),
     path('update_products/', update_products, name='update_products'),
     path('delete_products/', delete_products, name='delete_products'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -180,6 +180,7 @@ def list_subcategory(request):
 
 @api_view(['PATCH'])
 def update_subcategory(request):
+    category_id=request.POST.get('category_id',None)
     subcatecory_id = request.POST.get('subcategory_id', None)
     new_name = request.POST.get('new_name', None)
     if subcategory_id is None:
@@ -236,11 +237,12 @@ def delete_subcategory(request):
 def add_products(request):
     subcategory_id = request.POST.get('subcategory_id', None)
     name = request.POST.get('name', None)
-    prince = request.POST.get('price', None)
+    price = request.POST.get('price', None)
     description = request.POST.get('description', None)
-    if subcategory_id is None or name is None or price is None or description is None:
-        contect = {
-            'message': 'subcategory-id/name/price/description is missing'
+    image=request.FILES.get('image',None)
+    if subcategory_id is None or name is None or price is None or image is None or description is None:
+        context = {
+            'message': 'subcategory_id/name/price/image/description is missing'
         }
         return Response(context, status=status.HTTP_400_BAD_REQUEST)
     else:
@@ -249,7 +251,8 @@ def add_products(request):
                 subcategory_id=subcategory_id,
                 name=name,
                 price=price,
-                description=description
+                image=image,
+                description=description,
             )
             new_record.save()
             context = {
@@ -259,22 +262,23 @@ def add_products(request):
                     'subcategory_id': new_record.subcategory_id,
                     'subcategory_name': new_record.subcategory.name,
                     'product_name': new_record.name,
+                    'image':new_record.image.url if new_record.image else None,
                     'description': new_record.description,
                     'created_at': new_record.created_at,
                     'updated_at': new_record.updated_at
                 }
             }
-            return Response(contact, status=status.HTTP_200_OK)
+            return Response(context, status=status.HTTP_200_OK)
         except ValueError as e:
             context = {
                 'message': str(e)
             }
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
-        except IntegrityError:
-            context = {
-                'message': 'invalid subcategory_id..'
-            }
-            return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        #except IntegrityError:
+         #   context = {
+          #      'message': 'invalid subcategory_id..'
+           # }
+           # return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -285,24 +289,24 @@ def list_products(request):
         temp = {
             'product_id': products.id,
             'product_name': products.name,
-            'product_price': product.price,
-            'product_description': product.description,
+            'product_price': products.price,
+            'product_description': products.description,
         }
         data.append(temp)
         context = {
             'data': data
         }
-        return Response(contact, status=status.HTTP_200_OK)
+        return Response(context, status=status.HTTP_200_OK)
 
 
 @api_view(['PATCH'])
 def update_products(request):
     product_id = request.POST.get('product_id', None)
     subcategory_id = request.POST.get('subcategory_id', None)
-    name = request.POST.get('name', None)
+    new_name = request.POST.get('name', None)
     price = request.POST.get('price', None)
     description = request.POST.get('description', None)
-    if product_id is None or subcategory_id is None or name is None or price is None or price is None or description is None:
+    if product_id is None:
         context = {
             'message': 'product_id/subactegory_id/name/price/description is missing'
         }
@@ -310,15 +314,7 @@ def update_products(request):
     else:
         try:
             get_products = Products.objects.get(id=product_id)
-            get_subcategory_id = request.POST.get('subcategory_id', Products.subcategory.id)
-            name = request.POST.get('name', Products.name)
-            price = request.POST.get('price', Products.price)
-            description = request.POST.get('description', Products.description)
-
-            products.subcategory_id = subcategory_id
-            products.name = name
-            products.price = price
-            products.description = description
+            get_products.name=new_name if new_name is not None else get_products.name
             products.save()
 
             context = {
