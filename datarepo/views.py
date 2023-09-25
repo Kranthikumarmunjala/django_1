@@ -180,7 +180,7 @@ def list_subcategory(request):
 
 @api_view(['PATCH'])
 def update_subcategory(request):
-    category_id=request.POST.get('category_id',None)
+    category_id = request.POST.get('category_id', None)
     subcatecory_id = request.POST.get('subcategory_id', None)
     new_name = request.POST.get('new_name', None)
     if subcategory_id is None:
@@ -239,7 +239,7 @@ def add_products(request):
     name = request.POST.get('name', None)
     price = request.POST.get('price', None)
     description = request.POST.get('description', None)
-    image=request.FILES.get('image',None)
+    image = request.FILES.get('image', None)
     if subcategory_id is None or name is None or price is None or image is None or description is None:
         context = {
             'message': 'subcategory_id/name/price/image/description is missing'
@@ -262,7 +262,7 @@ def add_products(request):
                     'subcategory_id': new_record.subcategory_id,
                     'subcategory_name': new_record.subcategory.name,
                     'product_name': new_record.name,
-                    'image':new_record.image.url if new_record.image else None,
+                    'image': new_record.image.url if new_record.image else None,
                     'description': new_record.description,
                     'created_at': new_record.created_at,
                     'updated_at': new_record.updated_at
@@ -274,27 +274,44 @@ def add_products(request):
                 'message': str(e)
             }
             return Response(context, status=status.HTTP_400_BAD_REQUEST)
-        #except IntegrityError:
-         #   context = {
-          #      'message': 'invalid subcategory_id..'
-           # }
-           # return Response(context, status=status.HTTP_400_BAD_REQUEST)
+        # except IntegrityError:
+        #   context = {
+        #      'message': 'invalid subcategory_id..'
+        # }
+        # return Response(context, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 def list_products(request):
-    all_products = Products.objects.all()
+    page = request.GET.get('page', 0)
+    limit = request.GET.get('limit', 10)
+    search_text = request.GET.get('search_text', None)
+    try:
+        page == int(page)
+        limit = int(limit)
+    except:
+        page = 0
+        limit = 10
+
+    query = {}
+    if search_text:
+        query['name__istartswith'] = search_text  # iexact
+    all_products = Products.objects.filter(**query)
     data = []
-    for products in all_products:
+    for products in all_products[(page * limit):(page * limit) + limit]:
         temp = {
             'product_id': products.id,
             'product_name': products.name,
             'product_price': products.price,
+            'image': products.image.url if products.image else None,
             'product_description': products.description,
         }
         data.append(temp)
         context = {
-            'data': data
+            'data': data,
+            'page': page,
+            'limit': limit,
+            'count': all_products.count()
         }
         return Response(context, status=status.HTTP_200_OK)
 
@@ -314,7 +331,7 @@ def update_products(request):
     else:
         try:
             get_products = Products.objects.get(id=product_id)
-            get_products.name=new_name if new_name is not None else get_products.name
+            get_products.name = new_name if new_name is not None else get_products.name
             products.save()
 
             context = {
